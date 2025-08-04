@@ -1,0 +1,45 @@
+package com.armylima.Lima.controllers;
+
+import com.armylima.Lima.entities.UserInfo;
+import com.armylima.Lima.services.UserService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/users")
+public class UserController {
+
+    private final UserService userService;
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
+
+    // It now accepts the Authentication principal to know who is asking.
+    @PreAuthorize("hasRole('OFFICER')") // This correctly allows only OC and BC
+    @GetMapping("/pending-verification")
+    public ResponseEntity<List<UserInfo>> getPendingUsers(Authentication auth) {
+        return ResponseEntity.ok(userService.getPendingUsers(auth));
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/me")
+    public ResponseEntity<UserInfo> getCurrentUserProfile(Authentication auth) {
+        return ResponseEntity.ok(
+                userService.findByArmyId(auth.getName())
+                        .orElseThrow(() -> new RuntimeException("User not found"))
+        );
+    }
+
+    @PreAuthorize("hasRole('OFFICER')")
+    @GetMapping("/verify/{armyId}")
+    public ResponseEntity<UserInfo> verifyUser(
+            @PathVariable String armyId
+
+    ) {
+        return ResponseEntity.ok(userService.verifyUser(armyId));
+    }
+}
