@@ -9,6 +9,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 
 
 @Entity
@@ -25,6 +26,15 @@ public class LeaveInfo {
     private LocalDate fromDate;
     private LocalDate toDate;
     private String reason;
+    private String location;
+
+    @Transient
+    public long getDuration(){
+
+        if(fromDate==null || toDate==null) return 0;
+
+        return ChronoUnit.DAYS.between(fromDate, toDate)+1;
+    }
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")

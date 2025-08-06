@@ -1,11 +1,8 @@
 package com.armylima.Lima.services;
 
-import com.armylima.Lima.dto.Bty;
-import com.armylima.Lima.dto.LeaveRequestDTO;
-import com.armylima.Lima.dto.Rank;
+import com.armylima.Lima.dto.*;
 //import com.armylima.Lima.dto.Team;
 import com.armylima.Lima.entities.LeaveInfo;
-import com.armylima.Lima.dto.LeaveStatus;
 import com.armylima.Lima.entities.UserInfo;
 import com.armylima.Lima.repositories.LeaveRequestRepository;
 import java.time.LocalDate;
@@ -32,7 +29,9 @@ public class LeaveRequestService {
         UserInfo user = userRepository.findByArmyId(auth.getName()).orElseThrow();
         LeaveInfo.LeaveInfoBuilder leaveBuilder = LeaveInfo.builder()
                 .user(user).fromDate(dto.getFromDate()).toDate(dto.getToDate())
-                .reason(dto.getReason()).status(LeaveStatus.PENDING);
+                .reason(dto.getReason())
+                .location(dto.getLocation())
+                .status(LeaveStatus.PENDING);
 
         switch (user.getRank()) {
             case OR:
@@ -49,6 +48,25 @@ public class LeaveRequestService {
                 break;
         }
         return leaveRepository.save(leaveBuilder.build());
+    }
+
+    public LeaveInfo updateLeaveLocation(Long leaveId, UpdateLocationDTO dto, Authentication auth) {
+
+        UserInfo user = userRepository.findByArmyId(auth.getName()).orElseThrow();
+        LeaveInfo leaveInfo = leaveRepository.findById(leaveId).orElseThrow();
+
+        if(!leaveInfo.getUser().getArmyId().equals(user.getArmyId())){
+            throw new RuntimeException("You can only update your own leave requests.");
+        }
+
+        LocalDate today= LocalDate.now();
+        if(today.isBefore(leaveInfo.getFromDate()) || today.isAfter(leaveInfo.getToDate())){
+            throw new RuntimeException("You can only update leave requests that are currently active.");
+        }
+
+
+        leaveInfo.setLocation(dto.getLocation());
+        return leaveRepository.save(leaveInfo);
     }
 
     public LeaveInfo approveLeave(Long leaveId, Authentication auth) {

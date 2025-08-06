@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -167,5 +168,35 @@ public class AnalyticsService {
                 LeaveStatus.APPROVED,
                 startDate
         );
+    }
+
+    public List<IndividualLeaveStatsDTO> getIndividualLeaveStats(Authentication auth){
+        UserInfo officer = userRepository.findByArmyId(auth.getName()).orElseThrow();
+        List<UserInfo> subordinates = getSubordinates(officer);
+
+        final int MAX_LEAVE_DAYS= 90;
+        LocalDate startOfYear=LocalDate.now().with(TemporalAdjusters.firstDayOfYear());
+        LocalDate endOfYear=LocalDate.now().with(TemporalAdjusters.lastDayOfYear());
+
+        return subordinates.stream().map(subordinate->{
+
+            List<LeaveInfo> leavesThisYear= leaveRepository.findByUserAndStatus(subordinate, LeaveStatus.APPROVED)
+                    .stream().filter(leave-> leave.getFromDate().isAfter(startOfYear)&& leave.getToDate().isBefore(LocalDate.now()))
+                    .collect(Collectors.toList());
+
+
+            int daysTaken = leavesThisYear.stream()
+                    .mapToInt(leave -> (int) (ChronoUnit.DAYS.between(leave.getFromDate(), leave.getToDate()) + 1))
+                    .sum();
+
+            int daysRemaining= MAX_LEAVE_DAYS- daysTaken;
+
+            return new IndividualLeaveStatsDTO(
+                    subordinate,
+                    daysTaken,
+                    MAX_LEAVE_DAYS,
+                    daysRemaining
+            );
+        }).collect(Collectors.toList());
     }
 }

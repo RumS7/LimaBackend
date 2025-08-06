@@ -10,4 +10,5 @@ public class LeaveRequestDTO {
     private LocalDate fromDate;
     private LocalDate toDate;
     private String reason;
+    private String location;
 }

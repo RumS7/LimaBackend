@@ -1,5 +1,6 @@
 package com.armylima.Lima.controllers;
 
+import com.armylima.Lima.dto.IndividualLeaveStatsDTO;
 import com.armylima.Lima.dto.OnLeaveHealthSummaryDTO;
 import com.armylima.Lima.dto.SubordinateLeaveSummaryDTO;
 import com.armylima.Lima.entities.LeaveInfo;
@@ -40,5 +41,11 @@ public class AnalyticsController {
     @GetMapping("/leaves-in-last-days/{days}")
     public ResponseEntity<List<LeaveInfo>> getLeavesInLastDays(@PathVariable int days, Authentication auth) {
         return ResponseEntity.ok(analyticsService.getLeavesInLastDays(days, auth));
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("individual-leave-stats")
+    public ResponseEntity<List<IndividualLeaveStatsDTO>> getIndividualLeaveStats(Authentication auth) {
+        return ResponseEntity.ok(analyticsService.getIndividualLeaveStats(auth));
     }
 }

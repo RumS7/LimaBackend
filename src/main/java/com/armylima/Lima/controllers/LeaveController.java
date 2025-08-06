@@ -1,6 +1,7 @@
 package com.armylima.Lima.controllers;
 
 import com.armylima.Lima.dto.LeaveRequestDTO;
+import com.armylima.Lima.dto.UpdateLocationDTO;
 import com.armylima.Lima.entities.LeaveInfo;
 import com.armylima.Lima.dto.LeaveStatus;
 import com.armylima.Lima.services.LeaveRequestService;
@@ -68,5 +69,15 @@ public class LeaveController {
     @PostMapping("/reject/{id}")
     public ResponseEntity<LeaveInfo> rejectLeave(@PathVariable Long id, Authentication auth) {
         return ResponseEntity.ok(leaveService.rejectLeave(id, auth));
+    }
+
+    @PutMapping("/{id}/location")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<LeaveInfo> updateLeaveLocation(
+            @PathVariable Long id,
+            @RequestBody UpdateLocationDTO dto,
+            Authentication auth
+            ){
+        return ResponseEntity.ok(leaveService.updateLeaveLocation(id,dto,auth));
     }
 }
