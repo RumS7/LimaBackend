@@ -96,4 +96,11 @@ public class UserService {
         return userRepository.findAll();
     }
 
+    public void updateFCMToken(String armyId, String token){
+        userRepository.findByArmyId(armyId).ifPresent(user->{
+            user.setFcmToken(token);
+            userRepository.save(user);
+        });
+    }
+
 }

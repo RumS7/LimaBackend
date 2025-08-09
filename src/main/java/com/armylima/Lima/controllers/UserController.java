@@ -8,6 +8,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/users")
@@ -41,5 +42,11 @@ public class UserController {
 
     ) {
         return ResponseEntity.ok(userService.verifyUser(armyId));
+    }
+
+    @PostMapping("/update-fcm-token")
+    public ResponseEntity<?> updateFCMToken(@RequestBody Map<String,String> payload, Authentication auth){
+        userService.updateFCMToken(auth.getName(), payload.get("token"));
+        return ResponseEntity.ok().build();
     }
 }

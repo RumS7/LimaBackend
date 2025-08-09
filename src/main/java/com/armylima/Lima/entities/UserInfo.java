@@ -19,6 +19,8 @@ public class UserInfo {
     private String name;
     private String email;
     private String password;
+    @Column(nullable = true, length=512)
+    private String fcmToken;
     @Column(unique = true) private String armyId;
     @Enumerated(EnumType.STRING) private AccountStatus accountStatus = AccountStatus.PENDING_VERIFICATION;
     @Enumerated(EnumType.STRING) private Rank rank;
