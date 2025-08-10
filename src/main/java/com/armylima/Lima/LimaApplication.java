@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class LimaApplication {
 
 	public static void main(String[] args) {
-
+		SpringApplication.run(LimaApplication.class, args);
 
 	}
 
