@@ -20,9 +20,9 @@ public class CustomUserDetails implements UserDetails {
         List<GrantedAuthority> authorities = new ArrayList<>();
         if (user.getRank() != null) {
             authorities.add(new SimpleGrantedAuthority("ROLE_" + user.getRank().name()));
-            if (user.getRank() == Rank.CO || user.getRank() == Rank.BC) {
+            if (user.getRank() == Rank.KING || user.getRank() == Rank.KNIGHT || user.getRank() == Rank.QUEEN || user.getRank() == Rank.BISHOP || user.getRank() == Rank.ROOK ) {
                 authorities.add(new SimpleGrantedAuthority("ROLE_OFFICER"));
-            } else if (user.getRank() == Rank.JCO || user.getRank() == Rank.OR) {
+            } else if (user.getRank() == Rank.PAWN_SIPAHI) {
                 authorities.add(new SimpleGrantedAuthority("ROLE_SOLDIER"));
             }
         }
@@ -38,7 +38,7 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public boolean isEnabled() {
         if (user.getRank() == null) return false;
-        boolean isOfficer = user.getRank() == Rank.CO || user.getRank() == Rank.BC || user.getRank() == Rank.JCO;
+        boolean isOfficer = user.getRank() == Rank.KING || user.getRank() == Rank.KNIGHT || user.getRank() == Rank.QUEEN  || user.getRank() == Rank.ROOK;
         return isOfficer || user.getAccountStatus() == AccountStatus.ACTIVE;
     }
 }

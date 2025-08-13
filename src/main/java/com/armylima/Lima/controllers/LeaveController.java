@@ -22,19 +22,19 @@ public class LeaveController {
         this.leaveService = leaveService;
     }
 
-    @PreAuthorize("hasAnyRole('OR', 'JCO', 'BC', 'CO')")
+    @PreAuthorize("hasAnyRole('PAWN_SIPAHI','KNIGHT','QUEEN','ROOK','BISHOP')")
     @PostMapping("/apply")
     public ResponseEntity<LeaveInfo> applyLeave(@RequestBody LeaveRequestDTO dto, Authentication auth) {
         return ResponseEntity.ok(leaveService.applyLeave(dto, auth));
     }
 
-    @PreAuthorize("hasAnyRole('OR', 'JCO', 'BC', 'CO')")
+    @PreAuthorize("hasAnyRole('PAWN_SIPAHI','KNIGHT','QUEEN','ROOK','BISHOP')")
     @GetMapping("/my-requests")
     public ResponseEntity<List<LeaveInfo>> getMyRequests(Authentication auth) {
         return ResponseEntity.ok(leaveService.getMyLeaves(auth));
     }
 
-    @PreAuthorize("hasRole('CO')") // Or whichever roles should see all leaves
+    @PreAuthorize("hasAnyRole('KING','ROOK','QUEEN')") // Or whichever roles should see all leaves
     @GetMapping("/all")
     public ResponseEntity<List<LeaveInfo>> getAllRequests() {
         return ResponseEntity.ok(leaveService.getAllLeaves());
@@ -47,25 +47,25 @@ public class LeaveController {
     }
 
 
-    @PreAuthorize("hasAnyRole('BC', 'JCO')")
+    @PreAuthorize("hasAnyRole('KNIGHT','BISHOP')")
     @GetMapping("/finalized-for-my-team")
     public ResponseEntity<List<LeaveInfo>> getFinalizedForMyTeam(Authentication auth) {
         return ResponseEntity.ok(leaveService.getFinalizedLeavesForTeam(auth));
     }
 
-    @PreAuthorize("hasAnyRole('JCO', 'BC', 'CO')")
+    @PreAuthorize("hasAnyRole('KING','BISHOP','KNIGHT','QUEEN','ROOK')")
     @GetMapping("/pending-for-me")
     public ResponseEntity<List<LeaveInfo>> getPendingForMe(Authentication auth) {
         return ResponseEntity.ok(leaveService.getPendingForOfficer(auth));
     }
 
-    @PreAuthorize("hasAnyRole('JCO', 'BC', 'CO')")
+    @PreAuthorize("hasAnyRole('KING','BISHOP','KNIGHT','QUEEN','ROOK')")
     @PostMapping("/approve/{id}")
     public ResponseEntity<LeaveInfo> approveLeave(@PathVariable Long id, Authentication auth) {
         return ResponseEntity.ok(leaveService.approveLeave(id, auth));
     }
 
-    @PreAuthorize("hasAnyRole('JCO', 'BC', 'CO')")
+    @PreAuthorize("hasAnyRole('KING','BISHOP','KNIGHT','QUEEN','ROOK')")
     @PostMapping("/reject/{id}")
     public ResponseEntity<LeaveInfo> rejectLeave(@PathVariable Long id, Authentication auth) {
         return ResponseEntity.ok(leaveService.rejectLeave(id, auth));

@@ -20,65 +20,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-//@Service
-//public class AnalyticsService {
-//
-//    private final UserRepository userRepository;
-//    private final LeaveRequestRepository leaveRequestRepository;
-//
-//    public AnalyticsService(UserRepository userRepository, LeaveRequestRepository leaveRequestRepository){
-//        this.userRepository = userRepository;
-//        this.leaveRequestRepository = leaveRequestRepository;
-//    }
-//
-//
-//    public List<SubordinateLeaveSummaryDTO> getSubordinateLeaveSummary(Authentication auth){
-//
-//        UserInfo officer= userRepository.findByArmyId(auth.getName()).orElseThrow();
-//        List<UserInfo> allUsers= userRepository.findAll();
-//        List<UserInfo> subordinates= new ArrayList<>();
-//
-//           switch(officer.getRole()){
-//
-//               case OC:
-//                   subordinates= allUsers.stream()
-//                           .filter(user->user.getRole()!= Role.OC)
-//                           .toList();
-//                    break;
-//
-//               case BC:
-//                   subordinates= allUsers.stream()
-//                           .filter(user->user.getTeam()==officer.getTeam()&& (user.getRole()==Role.JC || user.getRole()==Role.OR))
-//                           .toList();
-//                   break;
-//
-//               case JC:
-//                   subordinates= allUsers.stream()
-//                           .filter(user->user.getTeam()==officer.getTeam()&& (user.getRole()==Role.OR))
-//                           .toList();
-//                   break;
-//
-//           }
-//
-//           return subordinates.stream().map(subordinate->{
-//               List<LeaveInfo> theirLeave= leaveRequestRepository.findByUserAndStatus(subordinate, LeaveStatus.APPROVED);
-//               long totalLeaves= theirLeave.size();
-//
-//               Optional<LeaveInfo> lastLeave= theirLeave.stream()
-//                       .max(Comparator.comparing(LeaveInfo::getFromDate));
-//
-//               boolean onLeave = lastLeave.isPresent() && !LocalDate.now().isAfter(lastLeave.get().getToDate()) && !LocalDate.now()
-//                       .isBefore(lastLeave.get().getFromDate());
-//
-//               return new SubordinateLeaveSummaryDTO(
-//                       subordinate,
-//                       totalLeaves,
-//                       lastLeave.map(LeaveInfo::getToDate).orElse(null),
-//                       onLeave
-//               );
-//           }).collect(Collectors.toList());
-//    }
-//}
 
 
 
@@ -98,12 +39,14 @@ public class AnalyticsService {
     public List<UserInfo> getSubordinates(UserInfo officer) {
         List<UserInfo> allUsers = userRepository.findAll();
         switch (officer.getRank()) {
-            case CO:
-                return allUsers.stream().filter(user -> user.getRank() != Rank.CO).collect(Collectors.toList());
-            case BC:
-                return allUsers.stream().filter(user -> user.getBty() == officer.getBty() && (user.getRank() == Rank.JCO || user.getRank() == Rank.OR)).collect(Collectors.toList());
-            case JCO:
-                return allUsers.stream().filter(user -> user.getBty() == officer.getBty() && user.getRank() == Rank.OR).collect(Collectors.toList());
+            case ROOK, KING:
+                return allUsers.stream().filter(user -> user.getRank() != Rank.KING).collect(Collectors.toList());
+             case QUEEN:
+                 return allUsers.stream().filter(user -> user.getRank() != Rank.KING && user.getRank() != Rank.QUEEN).collect(Collectors.toList());
+            case KNIGHT:
+                return allUsers.stream().filter(user -> user.getBty() == officer.getBty() && (user.getRank() == Rank.BISHOP || user.getRank() == Rank.PAWN_SIPAHI)).collect(Collectors.toList());
+            case BISHOP:
+                return allUsers.stream().filter(user -> user.getBty() == officer.getBty() && user.getRank() == Rank.PAWN_SIPAHI).collect(Collectors.toList());
             default:
                 return new ArrayList<>();
         }

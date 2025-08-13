@@ -38,19 +38,19 @@ public class AlertService {
     private List<UserInfo> findSuperiors(UserInfo user) {
         List<UserInfo> allUsers = userRepository.findAll();
         switch (user.getRank()) {
-            case OR:
+            case PAWN_SIPAHI:
                 return allUsers.stream().filter(u ->
-                        (u.getRank() == Rank.JCO && u.getBty() == user.getBty()) ||
-                                (u.getRank() == Rank.BC && u.getBty() == user.getBty()) ||
-                                (u.getRank() == Rank.CO)
+                        (u.getRank() == Rank.BISHOP && u.getBty() == user.getBty()) ||
+                                (u.getRank() == Rank.KNIGHT && u.getBty() == user.getBty()) ||
+                                (u.getRank() == Rank.KING || u.getRank() == Rank.QUEEN || u.getRank() == Rank.ROOK)
                 ).collect(Collectors.toList());
-            case JCO:
+            case BISHOP:
                 return allUsers.stream().filter(u ->
-                        (u.getRank() == Rank.BC && u.getBty() == user.getBty()) ||
-                                (u.getRank() == Rank.CO)
+                        (u.getRank() == Rank.KNIGHT && u.getBty() == user.getBty()) ||
+                                (u.getRank() == Rank.KING || u.getRank() == Rank.QUEEN ||  u.getRank() == Rank.ROOK)
                 ).collect(Collectors.toList());
-            case BC:
-                return allUsers.stream().filter(u -> u.getRank() == Rank.CO).collect(Collectors.toList());
+            case KNIGHT:
+                return allUsers.stream().filter(u -> u.getRank() == Rank.KING || u.getRank() == Rank.QUEEN ||  u.getRank() == Rank.ROOK).collect(Collectors.toList());
             default:
                 return List.of();
         }

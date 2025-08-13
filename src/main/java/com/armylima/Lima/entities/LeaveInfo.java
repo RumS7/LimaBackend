@@ -52,9 +52,12 @@ public class LeaveInfo {
     @Column(nullable = true)
     private Bty pendingWithBty;
 
-    private boolean approvedByJCO = false;
-    private boolean approvedByBC = false;
-    private boolean approvedByCO = false;
+    private boolean approvedByBishop = false;
+    private boolean approvedByKnight = false;
+    private boolean approvedByKing = false;
+    private boolean approvedByRook = false;
+    private boolean approvedByQueen = false;
+
 
     @Column(nullable = true)
     private String rejectedById;

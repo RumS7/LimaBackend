@@ -42,7 +42,7 @@ public class UserService {
             user.setRank(dto.rank());
 
             // Corrected: JCOs are officers and should be active on creation.
-            if(dto.rank() == Rank.CO || dto.rank() == Rank.BC || dto.rank() == Rank.JCO){
+            if(dto.rank() == Rank.KING || dto.rank() == Rank.QUEEN || dto.rank() == Rank.KNIGHT){
                 user.setAccountStatus(AccountStatus.ACTIVE);
             } else {
                 user.setAccountStatus(AccountStatus.PENDING_VERIFICATION);
@@ -60,27 +60,39 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    // --- THIS METHOD IS UPDATED WITH THE NEW LOGIC ---
+
     public List<UserInfo> getPendingUsers(Authentication auth) {
         String armyId = auth.getName();
         UserInfo approver = userRepository.findByArmyId(armyId)
                 .orElseThrow(() -> new RuntimeException("Approver not found"));
 
-        // If the approver is the OC, show all pending users from all teams.
-        if (approver.getRank() == Rank.CO) {
-            return userRepository.findByAccountStatus(AccountStatus.PENDING_VERIFICATION);
+//        // If the approver is the OC, show all pending users from all teams.
+//        if (approver.getRank() == Rank.KING) {
+//            return userRepository.findByAccountStatusAndRank(AccountStatus.PENDING_VERIFICATION,Rank.ROOK);
+//        }
+//
+//        // If the approver is a BC, only show pending users from their own team.
+//        if (approver.getRank() == Rank.KNIGHT) {
+//            return userRepository.findByAccountStatusAndBty(
+//                    AccountStatus.PENDING_VERIFICATION,
+//                    approver.getBty()
+//            );
+//        }
+
+        switch (approver.getRank()) {
+
+            case KING:
+                return userRepository.findByAccountStatusAndRank(AccountStatus.PENDING_VERIFICATION,Rank.ROOK);
+            case QUEEN:
+                return userRepository.findByAccountStatusAndRank(AccountStatus.PENDING_VERIFICATION,Rank.KNIGHT);
+            case KNIGHT:
+                return userRepository.findByAccountStatusAndBty(AccountStatus.PENDING_VERIFICATION,approver.getBty())
+                        .stream().filter(u->u.getRank()==Rank.PAWN_SIPAHI || u.getRank()==Rank.BISHOP).toList();
+
+            default:
+                return Collections.emptyList();
         }
 
-        // If the approver is a BC, only show pending users from their own team.
-        if (approver.getRank() == Rank.BC) {
-            return userRepository.findByAccountStatusAndBty(
-                    AccountStatus.PENDING_VERIFICATION,
-                    approver.getBty()
-            );
-        }
-
-        // Other roles (like JC) cannot see any pending users.
-        return Collections.emptyList();
     }
 
     public Optional<UserInfo> findByEmail(String email){

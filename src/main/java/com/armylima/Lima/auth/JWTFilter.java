@@ -43,7 +43,7 @@ public class JWTFilter extends OncePerRequestFilter {
 
         jwt = authHeader.substring(7);
 
-        // --- THIS IS THE FIX ---
+
         // We wrap the token extraction in a try-catch block to handle bad tokens.
         try {
             username = jwtService.extractUsername(jwt);
@@ -53,7 +53,7 @@ public class JWTFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-        // --- END OF FIX ---
+
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);

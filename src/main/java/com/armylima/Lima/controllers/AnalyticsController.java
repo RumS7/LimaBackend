@@ -25,19 +25,19 @@ public class AnalyticsController {
         this.analyticsService = analyticsService;
     }
 
-    @PreAuthorize("hasAnyRole('JCO', 'BC', 'CO')")
+    @PreAuthorize("hasAnyRole('KING','KNIGHT','QUEEN','ROOK','BISHOP')")
     @GetMapping("/subordinate-leave-summary")
     public ResponseEntity<List<SubordinateLeaveSummaryDTO>> getSubordinateSummary(Authentication auth) {
         return ResponseEntity.ok(analyticsService.getSubordinateLeaveSummary(auth));
     }
 
-    @PreAuthorize("hasAnyRole('JCO', 'BC', 'CO')")
+    @PreAuthorize("hasAnyRole('KING','KNIGHT','QUEEN','ROOK','BISHOP')")
     @GetMapping("/on-leave-health-summary")
     public ResponseEntity<OnLeaveHealthSummaryDTO> getOnLeaveHealthSummary(Authentication auth) {
         return ResponseEntity.ok(analyticsService.getOnLeaveHealthSummary(auth));
     }
 
-    @PreAuthorize("hasAnyRole('JCO', 'BC', 'CO')")
+    @PreAuthorize("hasAnyRole('KING','KNIGHT','QUEEN','ROOK','BISHOP')")
     @GetMapping("/leaves-in-last-days/{days}")
     public ResponseEntity<List<LeaveInfo>> getLeavesInLastDays(@PathVariable int days, Authentication auth) {
         return ResponseEntity.ok(analyticsService.getLeavesInLastDays(days, auth));

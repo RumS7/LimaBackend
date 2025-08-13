@@ -34,17 +34,19 @@ public class LeaveRequestService {
                 .status(LeaveStatus.PENDING);
 
         switch (user.getRank()) {
-            case OR:
-                leaveBuilder.pendingWithRank(Rank.JCO).pendingWithBty(user.getBty());
+            case PAWN_SIPAHI:
+                leaveBuilder.pendingWithRank(Rank.BISHOP).pendingWithBty(user.getBty());
                 break;
-            case JCO:
-                leaveBuilder.pendingWithRank(Rank.BC).pendingWithBty(user.getBty());
+            case BISHOP:
+                leaveBuilder.pendingWithRank(Rank.KNIGHT).pendingWithBty(user.getBty());
                 break;
-            case BC:
-                leaveBuilder.pendingWithRank(Rank.CO).pendingWithBty(Bty.OC);
+            case KNIGHT:
+                leaveBuilder.pendingWithRank(Rank.QUEEN).pendingWithBty(Bty.OC);
                 break;
-            case CO:
-                leaveBuilder.status(LeaveStatus.APPROVED).approvedByCO(true);
+            case QUEEN:
+                leaveBuilder.pendingWithRank(Rank.KING).pendingWithBty(Bty.OC);
+            case KING:
+                leaveBuilder.status(LeaveStatus.APPROVED).approvedByKing(true);
                 break;
         }
         return leaveRepository.save(leaveBuilder.build());
@@ -69,40 +71,108 @@ public class LeaveRequestService {
         return leaveRepository.save(leaveInfo);
     }
 
+//    public LeaveInfo approveLeave(Long leaveId, Authentication auth) {
+//        UserInfo approver = userRepository.findByArmyId(auth.getName()).orElseThrow();
+//        LeaveInfo leaveInfo = leaveRepository.findById(leaveId).orElseThrow();
+//
+//        if (leaveInfo.getStatus() != LeaveStatus.PENDING || approver.getRank() != leaveInfo.getPendingWithRank()) {
+//            throw new RuntimeException("Leave request is not pending your approval.");
+//        }
+//        if(approver.getRank() != Rank.KING && approver.getRank() != Rank.QUEEN && approver.getBty() != leaveInfo.getPendingWithBty()){
+//            throw new RuntimeException("You can only approve requests from your own team.");
+//        }
+//
+//        switch (approver.getRank()) {
+//            case BISHOP:
+//                leaveInfo.setApprovedByBishop(true);
+//                leaveInfo.setPendingWithRank(Rank.KNIGHT);
+//                break;
+//            case KNIGHT:
+//                leaveInfo.setApprovedByKnight(true);
+//                leaveInfo.setPendingWithRank(null);
+//                leaveInfo.setPendingWithBty(null);
+//                leaveInfo.setStatus(LeaveStatus.APPROVED);
+//                break;
+//            case QUEEN:
+//                leaveInfo.setApprovedByQueen(true);
+//                leaveInfo.setPendingWithRank(Rank.KING);
+//
+//                break;
+//            case KING:
+//                leaveInfo.setApprovedByKing(true);
+//                leaveInfo.setPendingWithRank(null);
+//                leaveInfo.setStatus(LeaveStatus.APPROVED);
+//
+//                break;
+//        }
+//        return leaveRepository.save(leaveInfo);
+//    }
+
+
     public LeaveInfo approveLeave(Long leaveId, Authentication auth) {
         UserInfo approver = userRepository.findByArmyId(auth.getName()).orElseThrow();
-        LeaveInfo leaveInfo = leaveRepository.findById(leaveId).orElseThrow();
+        LeaveInfo leaveInfo = leaveRepository.findById(leaveId).orElseThrow(() -> new RuntimeException("Leave request not found"));
+        UserInfo applicant = leaveInfo.getUser();
 
         if (leaveInfo.getStatus() != LeaveStatus.PENDING || approver.getRank() != leaveInfo.getPendingWithRank()) {
             throw new RuntimeException("Leave request is not pending your approval.");
         }
-        if(approver.getRank() != Rank.CO && approver.getBty() != leaveInfo.getPendingWithBty()){
-            throw new RuntimeException("You can only approve requests from your own team.");
+        if (List.of(Rank.KNIGHT, Rank.BISHOP).contains(approver.getRank()) && approver.getBty() != leaveInfo.getPendingWithBty()) {
+            throw new RuntimeException("You can only approve requests from your own Bty.");
         }
 
         switch (approver.getRank()) {
-            case JCO:
-                leaveInfo.setApprovedByJCO(true);
-                leaveInfo.setPendingWithRank(Rank.BC);
-                break;
-            case BC:
-                leaveInfo.setApprovedByBC(true);
-                leaveInfo.setPendingWithRank(Rank.CO);
+            case BISHOP: leaveInfo.setApprovedByBishop(true); break;
+            case KNIGHT: leaveInfo.setApprovedByKnight(true); break;
+            case ROOK: leaveInfo.setApprovedByRook(true); break;
+            case QUEEN: leaveInfo.setApprovedByQueen(true); break;
+            case KING: leaveInfo.setApprovedByKing(true); break;
+        }
+
+        Rank nextApprover = getNextApprover(applicant.getRank(), approver.getRank());
+        if (nextApprover == null) {
+            leaveInfo.setStatus(LeaveStatus.APPROVED);
+            leaveInfo.setPendingWithRank(null);
+            leaveInfo.setPendingWithBty(null);
+        } else {
+            leaveInfo.setPendingWithRank(nextApprover);
+            if (List.of(Rank.KING, Rank.QUEEN).contains(nextApprover)) {
                 leaveInfo.setPendingWithBty(Bty.OC);
-                break;
-            case CO:
-                leaveInfo.setApprovedByCO(true);
-                leaveInfo.setPendingWithRank(null);
-                leaveInfo.setPendingWithBty(null);
-                leaveInfo.setStatus(LeaveStatus.APPROVED);
-                break;
+            } else if (nextApprover == Rank.KNIGHT && applicant.getRank() == Rank.ROOK) {
+                // Special case for Rook -> Knight approval, knight might not be in a Bty
+                leaveInfo.setPendingWithBty(Bty.OC);
+            }
         }
         return leaveRepository.save(leaveInfo);
     }
+
+    private Rank getNextApprover(Rank applicantRank, Rank currentApproverRank) {
+        switch (applicantRank) {
+            case PAWN_SIPAHI: return (currentApproverRank == Rank.BISHOP) ? Rank.KNIGHT : null;
+            case BISHOP: return null;
+            case ROOK:
+                if (currentApproverRank == Rank.KNIGHT) return Rank.QUEEN;
+                if (currentApproverRank == Rank.QUEEN) return Rank.KING;
+                return null;
+            case KNIGHT: return (currentApproverRank == Rank.QUEEN) ? Rank.KING : null;
+            case QUEEN: return null;
+            default: return null;
+        }
+    }
+
+
+
+
+    public Optional<LeaveInfo> getApprovedByRank(Long id){
+        return leaveRepository.findById(id);
+    }
+
+
     public LeaveInfo rejectLeave(Long leaveId, Authentication auth) {
-        // You might want to add logic here to ensure the rejecter has the authority
+        UserInfo rejecter = userRepository.findByArmyId(auth.getName()).orElseThrow();
         LeaveInfo leaveInfo = leaveRepository.findById(leaveId).orElseThrow(() -> new RuntimeException("Leave request not found"));
         leaveInfo.setStatus(LeaveStatus.REJECTED);
+        leaveInfo.setRejectedById(rejecter.getArmyId());
         leaveInfo.setPendingWithRank(null);
         leaveInfo.setPendingWithBty(null);
         return leaveRepository.save(leaveInfo);
@@ -110,48 +180,48 @@ public class LeaveRequestService {
 
     public List<LeaveInfo> getPendingForOfficer(Authentication auth) {
         UserInfo officer = userRepository.findByArmyId(auth.getName()).orElseThrow();
-        if (officer.getRank() == Rank.CO) {
-            return leaveRepository.findByPendingWithRank(Rank.CO);
+        if (List.of(Rank.KING, Rank.QUEEN).contains(officer.getRank())) {
+            return leaveRepository.findByPendingWithRank(officer.getRank());
         } else {
             return leaveRepository.findByPendingWithRankAndPendingWithBty(officer.getRank(), officer.getBty());
         }
     }
 
-    public List<LeaveInfo> getMyLeaves(Authentication auth){
+    public List<LeaveInfo> getFinalizedLeavesForTeam(Authentication auth) {
+        UserInfo officer = userRepository.findByArmyId(auth.getName()).orElseThrow();
+        List<LeaveStatus> finalizedStatuses = List.of(LeaveStatus.APPROVED, LeaveStatus.REJECTED);
+        return leaveRepository.findByUser_BtyAndStatusIn(officer.getBty(), finalizedStatuses);
+    }
+
+    public boolean isSoldierOnLeave(Authentication auth) {
+        UserInfo user = userRepository.findByArmyId(auth.getName()).orElseThrow();
+        LocalDate today = LocalDate.now();
+        List<LeaveInfo> approvedLeaves = leaveRepository.findByUserAndStatus(user, LeaveStatus.APPROVED);
+        return approvedLeaves.stream().anyMatch(leave -> !today.isBefore(leave.getFromDate()) && !today.isAfter(leave.getToDate()));
+    }
+
+    public List<LeaveInfo> getMyLeaves(Authentication auth) {
         UserInfo user = userRepository.findByArmyId(auth.getName()).orElseThrow();
         return leaveRepository.findByUser(user);
     }
 
-    public List<LeaveInfo> getAllLeaves(){
+    public List<LeaveInfo> getAllLeaves() {
         return leaveRepository.findAll();
     }
 
-    public boolean isSoldierOnLeave(Authentication auth) {
-        String armyId = auth.getName();
-        UserInfo user = userRepository.findByArmyId(armyId).orElseThrow();
-        LocalDate today = LocalDate.now();
-        List<LeaveInfo> approvedLeaves = leaveRepository.findByUserAndStatus(user, LeaveStatus.APPROVED);
+    public LeaveInfo updateLocation(Long leaveId, UpdateLocationDTO dto, Authentication auth) {
+        UserInfo currentUser = userRepository.findByArmyId(auth.getName()).orElseThrow();
+        LeaveInfo leaveInfo = leaveRepository.findById(leaveId).orElseThrow(() -> new RuntimeException("Leave request not found"));
 
-        for (LeaveInfo leave : approvedLeaves) {
-            if (!today.isBefore(leave.getFromDate()) && !today.isAfter(leave.getToDate())) {
-                return true;
-            }
+        if (!leaveInfo.getUser().equals(currentUser)) {
+            throw new RuntimeException("You are not authorized to update this leave request.");
         }
-        return false;
-    }
+        LocalDate today = LocalDate.now();
+        if (today.isBefore(leaveInfo.getFromDate()) || today.isAfter(leaveInfo.getToDate())) {
+            throw new RuntimeException("Location can only be updated during an active leave period.");
+        }
 
-    public List<LeaveInfo> getFinalizedLeavesForTeam(Authentication auth) {
-        UserInfo officer = userRepository.findByArmyId(auth.getName()).orElseThrow();
-
-        // Create a list of the statuses we consider "finalized"
-        List<LeaveStatus> finalizedStatuses = List.of(LeaveStatus.APPROVED, LeaveStatus.REJECTED);
-
-        // Use the new, more efficient repository method
-        return leaveRepository.findByUser_BtyAndStatusIn(officer.getBty(), finalizedStatuses);
-    }
-
-
-    public Optional<LeaveInfo> getApprovedByRank(Long id){
-        return leaveRepository.findById(id);
+        leaveInfo.setLocation(dto.getLocation());
+        return leaveRepository.save(leaveInfo);
     }
 }

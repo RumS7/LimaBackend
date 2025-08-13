@@ -37,11 +37,14 @@ public class AuthController {
     private final PasswordEncoder encoder;
     private final UserService userService;
 
-    @Value("${OC.secretkey}")
-    private String ocKey;
+    @Value("${KING.secretkey}")
+    private String KingKey;
 
-    @Value("${BC.secretkey}")
-    private String bcKey;
+    @Value("${KNIGHT.secretkey}")
+    private String KnightKey;
+
+    @Value("${QUEEN.secretkey}")
+    private String QueenKey;
 
     public AuthController(UserRepository userRepo, PasswordEncoder encoder,
                           UserService userService, JWTService jwtService) {
@@ -62,13 +65,17 @@ public class AuthController {
         }
 
         // --- THIS IS THE CORRECTED LOGIC ---
-        if (dto.rank() == Rank.CO) {
-            if (!dto.secretKey().equals(ocKey)) { // Use .equals() for string comparison
-                return ResponseEntity.status(409).body("Incorrect OC key");
+        if (dto.rank() == Rank.KING) {
+            if (dto.secretKey()==null || !dto.secretKey().equals(KingKey)) { // Use .equals() for string comparison
+                return ResponseEntity.status(409).body("Incorrect KING  key");
             }
-        } else if (dto.rank() == Rank.BC) {
-            if (!dto.secretKey().equals(bcKey)) { // Use .equals() for string comparison
-                return ResponseEntity.status(409).body("Incorrect BC key");
+        } else if (dto.rank() == Rank.KNIGHT) {
+            if (dto.secretKey()==null || !dto.secretKey().equals(KnightKey)) { // Use .equals() for string comparison
+                return ResponseEntity.status(409).body("Incorrect KNIGHT key");
+            }
+        }else if (dto.rank() == Rank.QUEEN) {
+            if (dto.secretKey()==null || !dto.secretKey().equals(QueenKey)) { // Use .equals() for string comparison
+                return ResponseEntity.status(409).body("Incorrect QUEEN key");
             }
         }
         // --- END OF CORRECTION ---
