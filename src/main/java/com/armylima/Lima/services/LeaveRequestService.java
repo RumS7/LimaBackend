@@ -43,6 +43,7 @@ public class LeaveRequestService {
             case KNIGHT:
                 leaveBuilder.pendingWithRank(Rank.QUEEN).pendingWithBty(Bty.OC);
                 break;
+
             case QUEEN:
                 leaveBuilder.pendingWithRank(Rank.KING).pendingWithBty(Bty.OC);
             case KING:
@@ -143,6 +144,23 @@ public class LeaveRequestService {
                 leaveInfo.setPendingWithBty(Bty.OC);
             }
         }
+        return leaveRepository.save(leaveInfo);
+    }
+
+    public LeaveInfo addLegacyLeave(LegacyLeaveDTO dto, Authentication auth) {
+        UserInfo user = userRepository.findByArmyId(dto.getArmyId())
+                .orElseThrow(() -> new RuntimeException("Soldier not found with ID: " + dto.getArmyId()));
+
+        LeaveInfo leaveInfo = LeaveInfo.builder()
+                .user(user)
+                .fromDate(dto.getFromDate())
+                .toDate(dto.getToDate())
+                .reason(dto.getReason())
+                .location(dto.getLocation())
+                .status(LeaveStatus.APPROVED) // Legacy leaves are always considered approved
+                .isLegacyRecord(true) // Mark as a legacy record
+                .build();
+
         return leaveRepository.save(leaveInfo);
     }
 

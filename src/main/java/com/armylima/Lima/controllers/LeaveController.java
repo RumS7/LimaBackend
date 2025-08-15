@@ -1,6 +1,7 @@
 package com.armylima.Lima.controllers;
 
 import com.armylima.Lima.dto.LeaveRequestDTO;
+import com.armylima.Lima.dto.LegacyLeaveDTO;
 import com.armylima.Lima.dto.UpdateLocationDTO;
 import com.armylima.Lima.entities.LeaveInfo;
 import com.armylima.Lima.dto.LeaveStatus;
@@ -69,6 +70,12 @@ public class LeaveController {
     @PostMapping("/reject/{id}")
     public ResponseEntity<LeaveInfo> rejectLeave(@PathVariable Long id, Authentication auth) {
         return ResponseEntity.ok(leaveService.rejectLeave(id, auth));
+    }
+    // --- NEW ENDPOINT ---
+    @PostMapping("/add-legacy")
+    @PreAuthorize("hasRole('OFFICER')")
+    public ResponseEntity<LeaveInfo> addLegacyLeave(@RequestBody LegacyLeaveDTO dto, Authentication auth) {
+        return ResponseEntity.ok(leaveService.addLegacyLeave(dto, auth));
     }
 
     @PutMapping("/{id}/location")

@@ -1,5 +1,6 @@
 package com.armylima.Lima.services;
 
+import com.armylima.Lima.dto.Bty;
 import com.armylima.Lima.dto.RegisterDTO;
 import com.armylima.Lima.dto.AccountStatus;
 import com.armylima.Lima.dto.Rank;
@@ -40,6 +41,8 @@ public class UserService {
             user.setArmyId(dto.armyId());
             user.setBty(dto.bty());
             user.setRank(dto.rank());
+
+
 
             // Corrected: JCOs are officers and should be active on creation.
             if(dto.rank() == Rank.KING || dto.rank() == Rank.QUEEN || dto.rank() == Rank.KNIGHT){
@@ -114,5 +117,14 @@ public class UserService {
             userRepository.save(user);
         });
     }
+
+    public UserInfo transferUserBty(String armyId, Bty newBty) {
+        UserInfo user = userRepository.findByArmyId(armyId)
+                .orElseThrow(() -> new RuntimeException("User not found: " + armyId));
+
+        user.setBty(newBty);
+        return userRepository.save(user);
+    }
+
 
 }

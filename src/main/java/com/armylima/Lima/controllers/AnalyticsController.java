@@ -4,6 +4,7 @@ import com.armylima.Lima.dto.IndividualLeaveStatsDTO;
 import com.armylima.Lima.dto.OnLeaveHealthSummaryDTO;
 import com.armylima.Lima.dto.SubordinateLeaveSummaryDTO;
 import com.armylima.Lima.entities.LeaveInfo;
+import com.armylima.Lima.entities.UserInfo;
 import com.armylima.Lima.services.AnalyticsService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -47,5 +48,11 @@ public class AnalyticsController {
     @GetMapping("individual-leave-stats")
     public ResponseEntity<List<IndividualLeaveStatsDTO>> getIndividualLeaveStats(Authentication auth) {
         return ResponseEntity.ok(analyticsService.getIndividualLeaveStats(auth));
+    }
+
+    @PreAuthorize("hasAnyRole('KING','QUEEN','KNIGHT','BISHOP','ROOK')")
+    @GetMapping("/users-without-leave/{days}")
+    public ResponseEntity<List<UserInfo>> getUsersWithoutLeave(@PathVariable int days, Authentication auth) {
+        return ResponseEntity.ok(analyticsService.getUsersWithoutLeave(days, auth));
     }
 }

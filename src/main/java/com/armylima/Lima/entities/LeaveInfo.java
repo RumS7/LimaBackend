@@ -51,6 +51,7 @@ public class LeaveInfo {
     @Enumerated(EnumType.STRING)
     @Column(nullable = true)
     private Bty pendingWithBty;
+    private boolean isLegacyRecord = false;
 
     private boolean approvedByBishop = false;
     private boolean approvedByKnight = false;

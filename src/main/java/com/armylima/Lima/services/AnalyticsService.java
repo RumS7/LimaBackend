@@ -66,6 +66,29 @@ public class AnalyticsService {
         }).collect(Collectors.toList());
     }
 
+    public List<UserInfo> getUsersWithoutLeave(int days, Authentication auth) {
+        UserInfo officer = userRepository.findByArmyId(auth.getName()).orElseThrow();
+        List<UserInfo> subordinates = getSubordinates(officer);
+        LocalDate cutoffDate = LocalDate.now().minusDays(days);
+
+        List<UserInfo> usersWithoutLeave = new ArrayList<>();
+
+        for (UserInfo subordinate : subordinates) {
+            Optional<LeaveInfo> lastLeave = leaveRepository.findByUserAndStatus(subordinate, LeaveStatus.APPROVED)
+                    .stream()
+                    .max(Comparator.comparing(LeaveInfo::getToDate));
+
+            if (lastLeave.isEmpty()) {
+                // If they have never taken an approved leave, include them.
+                usersWithoutLeave.add(subordinate);
+            } else if (lastLeave.get().getToDate().isBefore(cutoffDate)) {
+                // If their last leave ended before the cutoff date, include them.
+                usersWithoutLeave.add(subordinate);
+            }
+        }
+        return usersWithoutLeave;
+    }
+
     public OnLeaveHealthSummaryDTO getOnLeaveHealthSummary(Authentication auth) {
         UserInfo officer = userRepository.findByArmyId(auth.getName()).orElseThrow();
         List<UserInfo> subordinates = getSubordinates(officer);
