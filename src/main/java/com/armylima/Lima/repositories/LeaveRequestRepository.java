@@ -27,7 +27,7 @@ public interface LeaveRequestRepository extends JpaRepository<LeaveInfo, Long> {
    // List<LeaveInfo> findByPendingWithRankAndStatus(Rank rank, LeaveStatus leaveStatus);
 
    // List<LeaveInfo> findByPendingWithRankAndPendingWithTeam(Rank rank, Team team);
-
+   boolean existsByUserAndStatus(UserInfo user, LeaveStatus status);
     List<LeaveInfo> findByUser(UserInfo user);
 
     List<LeaveInfo> findByUserAndStatus(UserInfo user, LeaveStatus leaveStatus);

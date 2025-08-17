@@ -27,6 +27,10 @@ public class LeaveRequestService {
     }
     public LeaveInfo applyLeave(LeaveRequestDTO dto, Authentication auth) {
         UserInfo user = userRepository.findByArmyId(auth.getName()).orElseThrow();
+
+        if (leaveRepository.existsByUserAndStatus(user, LeaveStatus.PENDING)) {
+            throw new RuntimeException("You already have a pending leave request. Please wait for it to be processed.");
+        }
         LeaveInfo.LeaveInfoBuilder leaveBuilder = LeaveInfo.builder()
                 .user(user).fromDate(dto.getFromDate()).toDate(dto.getToDate())
                 .reason(dto.getReason())
@@ -43,7 +47,7 @@ public class LeaveRequestService {
                 break;
 
             case QUEEN:
-                leaveBuilder.pendingWithRank(Rank.KING).pendingWithBty(Bty.OC);
+                leaveBuilder.pendingWithRank(Rank.KING).pendingWithBty(Bty.OC); break;
             case KING:
                 leaveBuilder.status(LeaveStatus.APPROVED).approvedByKing(true);
                 break;
@@ -239,5 +243,15 @@ public class LeaveRequestService {
 
         leaveInfo.setLocation(dto.getLocation());
         return leaveRepository.save(leaveInfo);
+    }
+
+    public Optional<LeaveInfo> findActiveLeaveForUser(Authentication auth) {
+        UserInfo user = userRepository.findByArmyId(auth.getName()).orElseThrow();
+        LocalDate today = LocalDate.now();
+
+        return leaveRepository.findByUserAndStatus(user, LeaveStatus.APPROVED)
+                .stream()
+                .filter(leave -> !today.isBefore(leave.getFromDate()) && !today.isAfter(leave.getToDate()))
+                .findFirst();
     }
 }

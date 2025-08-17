@@ -12,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/leave")
@@ -41,10 +42,14 @@ public class LeaveController {
         return ResponseEntity.ok(leaveService.getAllLeaves());
     }
 
+    @GetMapping("/current-active")
     @PreAuthorize("isAuthenticated()")
-    @GetMapping("/is-on-leave")
-    public ResponseEntity<Boolean> isOnLeave(Authentication auth) {
-        return ResponseEntity.ok(leaveService.isSoldierOnLeave(auth));
+    public ResponseEntity<LeaveInfo> getCurrentActiveLeave(Authentication auth) {
+        // Find the user's active leave, if one exists
+        Optional<LeaveInfo> activeLeave = leaveService.findActiveLeaveForUser(auth);
+        // If found, return it with 200 OK. If not, return 204 No Content.
+        return activeLeave.map(ResponseEntity::ok)
+                .orElse(ResponseEntity.noContent().build());
     }
 
 
