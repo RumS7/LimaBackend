@@ -7,6 +7,8 @@ import org.apache.catalina.User;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,10 +28,25 @@ public class AlertService {
         UserInfo user= userRepository.findByArmyId(auth.getName()).orElseThrow();
         List<UserInfo> superiors= findSuperiors(user);
 
+        String title = "EMERGENCY ALERT";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm");
+        String timestamp = LocalDateTime.now().format(formatter);
+
+
+        String body = String.join("\n",
+                "URGENT ASSISTANCE REQUIRED",
+                "",
+                "Personnel: " + user.getRank().name() + " " + user.getName(),
+                "Army ID: " + user.getArmyId(),
+                "Bty: " + user.getBty().name(),
+                "Time: " + timestamp,
+                "",
+                "Please acknowledge and respond immediately."
+        );
+
+
         for (UserInfo superior : superiors) {
             if (superior.getFcmToken() != null && !superior.getFcmToken().isEmpty()) {
-                String title = "EMERGENCY ALERT";
-                String body = "Alert triggered by " + user.getRank().name() + " " + user.getName() + " (ID: " + user.getArmyId() + ") from Bty " + user.getBty().name();
                 fcmService.sendNotification(superior.getFcmToken(), title, body);
             }
         }
