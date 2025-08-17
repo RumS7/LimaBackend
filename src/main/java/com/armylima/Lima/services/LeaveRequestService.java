@@ -37,9 +37,7 @@ public class LeaveRequestService {
             case PAWN_SIPAHI:
                 leaveBuilder.pendingWithRank(Rank.BISHOP).pendingWithBty(user.getBty());
                 break;
-            case BISHOP:
-                leaveBuilder.pendingWithRank(Rank.KNIGHT).pendingWithBty(user.getBty());
-                break;
+            case ROOK, BISHOP: leaveBuilder.pendingWithRank(Rank.KNIGHT).pendingWithBty(user.getBty()); break;
             case KNIGHT:
                 leaveBuilder.pendingWithRank(Rank.QUEEN).pendingWithBty(Bty.OC);
                 break;

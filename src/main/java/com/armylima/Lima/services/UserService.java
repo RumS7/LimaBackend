@@ -39,8 +39,14 @@ public class UserService {
             user.setPassword(passwordEncoder.encode(dto.password()));
             user.setName(dto.name());
             user.setArmyId(dto.armyId());
-            user.setBty(dto.bty());
+           // user.setBty(dto.bty());
             user.setRank(dto.rank());
+
+            if (List.of(Rank.KING, Rank.QUEEN, Rank.ROOK).contains(dto.rank())) {
+                user.setBty(Bty.OC);
+            } else {
+                user.setBty(dto.bty());
+            }
 
 
 
@@ -84,10 +90,9 @@ public class UserService {
 
         switch (approver.getRank()) {
 
-            case KING:
-                return userRepository.findByAccountStatusAndRank(AccountStatus.PENDING_VERIFICATION,Rank.ROOK);
+
             case QUEEN:
-                return userRepository.findByAccountStatusAndRank(AccountStatus.PENDING_VERIFICATION,Rank.KNIGHT);
+                return userRepository.findByAccountStatusAndRank(AccountStatus.PENDING_VERIFICATION,Rank.ROOK);
             case KNIGHT:
                 return userRepository.findByAccountStatusAndBty(AccountStatus.PENDING_VERIFICATION,approver.getBty())
                         .stream().filter(u->u.getRank()==Rank.PAWN_SIPAHI || u.getRank()==Rank.BISHOP).toList();
