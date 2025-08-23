@@ -38,6 +38,12 @@ public class AnalyticsController {
         return ResponseEntity.ok(analyticsService.getOnLeaveHealthSummary(auth));
     }
 
+    @PreAuthorize("hasAnyRole('KING','QUEEN','KNIGHT','BISHOP','ROOK')")
+    @GetMapping("/users-completed-leave/{days}")
+    public ResponseEntity<List<IndividualLeaveStatsDTO>> getUsersCompletedLeave(@PathVariable int days, Authentication auth) {
+        return ResponseEntity.ok(analyticsService.getUsersCompletedLeave(days, auth));
+    }
+
     @PreAuthorize("hasAnyRole('KING','KNIGHT','QUEEN','ROOK','BISHOP')")
     @GetMapping("/leaves-in-last-days/{days}")
     public ResponseEntity<List<LeaveInfo>> getLeavesInLastDays(@PathVariable int days, Authentication auth) {

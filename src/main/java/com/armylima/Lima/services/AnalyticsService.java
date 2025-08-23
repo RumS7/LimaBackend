@@ -119,6 +119,12 @@ public class AnalyticsService {
         return new OnLeaveHealthSummaryDTO(onLeavePersonnel.size(), fitToday, notFitToday, onLeavePersonnel);
     }
 
+    public List<IndividualLeaveStatsDTO> getUsersCompletedLeave(int days, Authentication auth) {
+        // This method reuses the logic from getIndividualLeaveStats but filters the result.
+        return getIndividualLeaveStats(auth).stream()
+                .filter(stats -> stats.getTotalLeaveDaysTakenThisYear() >= days)
+                .collect(Collectors.toList());
+    }
     public List<LeaveInfo> getLeavesInLastDays(int days, Authentication auth) {
         UserInfo officer = userRepository.findByArmyId(auth.getName()).orElseThrow();
         List<UserInfo> subordinates = getSubordinates(officer);

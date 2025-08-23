@@ -5,5 +5,5 @@ import lombok.Data;
 
 @Data
 public class UpdateLocationDTO {
-    private  String location ;
+    private  String newLocation ;
 }

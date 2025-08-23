@@ -70,7 +70,7 @@ public class LeaveRequestService {
         }
 
 
-        leaveInfo.setLocation(dto.getLocation());
+        leaveInfo.setLocation(dto.getNewLocation());
         return leaveRepository.save(leaveInfo);
     }
 
@@ -112,10 +112,11 @@ public class LeaveRequestService {
 //    }
 
 
-    public LeaveInfo approveLeave(Long leaveId, Authentication auth) {
+    public LeaveInfo approveLeave(Long leaveId,LeaveActionDTO dto, Authentication auth) {
         UserInfo approver = userRepository.findByArmyId(auth.getName()).orElseThrow();
         LeaveInfo leaveInfo = leaveRepository.findById(leaveId).orElseThrow(() -> new RuntimeException("Leave request not found"));
         UserInfo applicant = leaveInfo.getUser();
+        leaveInfo.setRemarks(dto.getRemarks());
 
         if (leaveInfo.getStatus() != LeaveStatus.PENDING || approver.getRank() != leaveInfo.getPendingWithRank()) {
             throw new RuntimeException("Leave request is not pending your approval.");
@@ -188,10 +189,11 @@ public class LeaveRequestService {
     }
 
 
-    public LeaveInfo rejectLeave(Long leaveId, Authentication auth) {
+    public LeaveInfo rejectLeave(Long leaveId,LeaveActionDTO dto, Authentication auth) {
         UserInfo rejecter = userRepository.findByArmyId(auth.getName()).orElseThrow();
         LeaveInfo leaveInfo = leaveRepository.findById(leaveId).orElseThrow(() -> new RuntimeException("Leave request not found"));
         leaveInfo.setStatus(LeaveStatus.REJECTED);
+        leaveInfo.setRemarks(dto.getRemarks());
         leaveInfo.setRejectedById(rejecter.getArmyId());
         leaveInfo.setPendingWithRank(null);
         leaveInfo.setPendingWithBty(null);
@@ -205,6 +207,12 @@ public class LeaveRequestService {
         } else {
             return leaveRepository.findByPendingWithRankAndPendingWithBty(officer.getRank(), officer.getBty());
         }
+    }
+
+    public List<LeaveInfo> getLeaveHistoryForSubordinate(String armyId) {
+        UserInfo user = userRepository.findByArmyId(armyId)
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + armyId));
+        return leaveRepository.findByUser(user);
     }
 
     public List<LeaveInfo> getFinalizedLeavesForTeam(Authentication auth) {
@@ -229,21 +237,21 @@ public class LeaveRequestService {
         return leaveRepository.findAll();
     }
 
-    public LeaveInfo updateLocation(Long leaveId, UpdateLocationDTO dto, Authentication auth) {
-        UserInfo currentUser = userRepository.findByArmyId(auth.getName()).orElseThrow();
-        LeaveInfo leaveInfo = leaveRepository.findById(leaveId).orElseThrow(() -> new RuntimeException("Leave request not found"));
-
-        if (!leaveInfo.getUser().equals(currentUser)) {
-            throw new RuntimeException("You are not authorized to update this leave request.");
-        }
-        LocalDate today = LocalDate.now();
-        if (today.isBefore(leaveInfo.getFromDate()) || today.isAfter(leaveInfo.getToDate())) {
-            throw new RuntimeException("Location can only be updated during an active leave period.");
-        }
-
-        leaveInfo.setLocation(dto.getLocation());
-        return leaveRepository.save(leaveInfo);
-    }
+//    public LeaveInfo updateLocation(Long leaveId, UpdateLocationDTO dto, Authentication auth) {
+//        UserInfo currentUser = userRepository.findByArmyId(auth.getName()).orElseThrow();
+//        LeaveInfo leaveInfo = leaveRepository.findById(leaveId).orElseThrow(() -> new RuntimeException("Leave request not found"));
+//
+//        if (!leaveInfo.getUser().equals(currentUser)) {
+//            throw new RuntimeException("You are not authorized to update this leave request.");
+//        }
+//        LocalDate today = LocalDate.now();
+//        if (today.isBefore(leaveInfo.getFromDate()) || today.isAfter(leaveInfo.getToDate())) {
+//            throw new RuntimeException("Location can only be updated during an active leave period.");
+//        }
+//
+//        leaveInfo.setLocation(dto.getNewLocation());
+//        return leaveRepository.save(leaveInfo);
+//    }
 
     public Optional<LeaveInfo> findActiveLeaveForUser(Authentication auth) {
         UserInfo user = userRepository.findByArmyId(auth.getName()).orElseThrow();

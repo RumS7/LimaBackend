@@ -7,6 +7,7 @@ import com.armylima.Lima.dto.Rank;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -51,6 +52,12 @@ public class LeaveInfo {
     @Enumerated(EnumType.STRING)
     @Column(nullable = true)
     private Bty pendingWithBty;
+
+    @CreationTimestamp
+    private LocalDate dateApplied;
+    @Column(nullable = true, length=512)
+    private String remarks;
+
     private boolean isLegacyRecord = false;
 
     private boolean approvedByBishop = false;

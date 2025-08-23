@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -55,14 +56,25 @@ public class HealthService {
 
     public HealthReport submitHealthReport(HealthReportDTO dto, Authentication auth) {
         String armyId = auth.getName();
+        LocalDate today = LocalDate.now();
 
-        HealthReport report = HealthReport.builder()
-                .armyId(armyId)
-                .reportDate(LocalDate.now())
-                .status(dto.getStatus())
-                .symptoms(dto.getSymptoms())
-                .build();
+        Optional<HealthReport> existingReportOpt = healthRepository.findByArmyIdAndReportDate(armyId, today);
+        HealthReport reportToSave;
+        if (existingReportOpt.isPresent()) {
+            // 2. If it exists, update it with the new data.
+            reportToSave = existingReportOpt.get();
+            reportToSave.setStatus(dto.getStatus());
+            reportToSave.setSymptoms(dto.getSymptoms());
+        } else {
+            // 3. If it doesn't exist, create a new one.
+            reportToSave = HealthReport.builder()
+                    .armyId(armyId)
+                    .reportDate(today)
+                    .status(dto.getStatus())
+                    .symptoms(dto.getSymptoms())
+                    .build();
+        }
 
-        return healthRepository.save(report);
+        return healthRepository.save(reportToSave);
     }
 }

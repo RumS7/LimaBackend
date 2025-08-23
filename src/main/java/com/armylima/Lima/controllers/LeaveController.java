@@ -1,10 +1,7 @@
 package com.armylima.Lima.controllers;
 
-import com.armylima.Lima.dto.LeaveRequestDTO;
-import com.armylima.Lima.dto.LegacyLeaveDTO;
-import com.armylima.Lima.dto.UpdateLocationDTO;
+import com.armylima.Lima.dto.*;
 import com.armylima.Lima.entities.LeaveInfo;
-import com.armylima.Lima.dto.LeaveStatus;
 import com.armylima.Lima.services.LeaveRequestService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -67,20 +64,26 @@ public class LeaveController {
 
     @PreAuthorize("hasAnyRole('KING','BISHOP','KNIGHT','QUEEN','ROOK')")
     @PostMapping("/approve/{id}")
-    public ResponseEntity<LeaveInfo> approveLeave(@PathVariable Long id, Authentication auth) {
-        return ResponseEntity.ok(leaveService.approveLeave(id, auth));
+    public ResponseEntity<LeaveInfo> approveLeave(@PathVariable Long id, @RequestBody LeaveActionDTO dto, Authentication auth) {
+        return ResponseEntity.ok(leaveService.approveLeave(id,dto, auth));
     }
 
     @PreAuthorize("hasAnyRole('KING','BISHOP','KNIGHT','QUEEN','ROOK')")
     @PostMapping("/reject/{id}")
-    public ResponseEntity<LeaveInfo> rejectLeave(@PathVariable Long id, Authentication auth) {
-        return ResponseEntity.ok(leaveService.rejectLeave(id, auth));
+    public ResponseEntity<LeaveInfo> rejectLeave(@PathVariable Long id,@RequestBody LeaveActionDTO dto, Authentication auth) {
+        return ResponseEntity.ok(leaveService.rejectLeave(id,dto, auth));
     }
     // --- NEW ENDPOINT ---
     @PostMapping("/add-legacy")
     @PreAuthorize("hasRole('OFFICER')")
     public ResponseEntity<LeaveInfo> addLegacyLeave(@RequestBody LegacyLeaveDTO dto, Authentication auth) {
         return ResponseEntity.ok(leaveService.addLegacyLeave(dto, auth));
+    }
+
+    @GetMapping("/history/{armyId}")
+    @PreAuthorize("hasRole('OFFICER')")
+    public ResponseEntity<List<LeaveInfo>> getLeaveHistoryForSubordinate(@PathVariable String armyId) {
+        return ResponseEntity.ok(leaveService.getLeaveHistoryForSubordinate(armyId));
     }
 
     @PutMapping("/{id}/location")
