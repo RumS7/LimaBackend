@@ -8,6 +8,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,7 +32,8 @@ public class AlertService {
 
         String title = "EMERGENCY ALERT";
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm");
-        String timestamp = LocalDateTime.now().format(formatter);
+        ZonedDateTime nowInIST = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
+        String timestamp = nowInIST.format(formatter);
 
 
         String body = String.join("\n",
@@ -58,13 +61,11 @@ public class AlertService {
             case PAWN_SIPAHI:
                 return allUsers.stream().filter(u ->
                         (u.getRank() == Rank.BISHOP && u.getBty() == user.getBty()) ||
-                                (u.getRank() == Rank.KNIGHT && u.getBty() == user.getBty()) ||
-                                (u.getRank() == Rank.KING || u.getRank() == Rank.QUEEN || u.getRank() == Rank.ROOK)
+                                (u.getRank() == Rank.KNIGHT && u.getBty() == user.getBty())
                 ).collect(Collectors.toList());
             case BISHOP:
                 return allUsers.stream().filter(u ->
-                        (u.getRank() == Rank.KNIGHT && u.getBty() == user.getBty()) ||
-                                (u.getRank() == Rank.KING || u.getRank() == Rank.QUEEN ||  u.getRank() == Rank.ROOK)
+                        (u.getRank() == Rank.KNIGHT && u.getBty() == user.getBty())
                 ).collect(Collectors.toList());
             case KNIGHT:
                 return allUsers.stream().filter(u -> u.getRank() == Rank.KING || u.getRank() == Rank.QUEEN ||  u.getRank() == Rank.ROOK).collect(Collectors.toList());
