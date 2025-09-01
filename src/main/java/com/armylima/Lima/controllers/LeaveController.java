@@ -95,4 +95,13 @@ public class LeaveController {
             ){
         return ResponseEntity.ok(leaveService.updateLeaveLocation(id,dto,auth));
     }
+
+    @PutMapping("/{id}/modify")
+    @PreAuthorize("hasAnyRole('KNIGHT', 'QUEEN')")
+    public ResponseEntity<LeaveInfo> modifyActiveLeave(
+            @PathVariable Long id,
+            @RequestBody ModifyLeaveDTO dto,
+            Authentication auth) {
+        return ResponseEntity.ok(leaveService.modifyActiveLeave(id, dto, auth));
+    }
 }

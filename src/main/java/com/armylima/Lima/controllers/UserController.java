@@ -72,4 +72,11 @@ public class UserController {
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
+
+    @DeleteMapping("/me")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> deleteOwnAccount(Authentication auth) {
+        userService.deleteOwnAccount(auth);
+        return ResponseEntity.ok(Map.of("message", "Account deleted successfully."));
+    }
 }

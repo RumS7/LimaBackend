@@ -262,4 +262,33 @@ public class LeaveRequestService {
                 .filter(leave -> !today.isBefore(leave.getFromDate()) && !today.isAfter(leave.getToDate()))
                 .findFirst();
     }
+
+    public LeaveInfo modifyActiveLeave(Long leaveId, ModifyLeaveDTO dto, Authentication auth) {
+        UserInfo officer = userRepository.findByArmyId(auth.getName()).orElseThrow();
+        LeaveInfo leaveInfo = leaveRepository.findById(leaveId).orElseThrow(() -> new RuntimeException("Leave request not found"));
+        UserInfo subordinate = leaveInfo.getUser();
+
+        // Security check: Ensure the modifier is a superior of the leave applicant
+        // This is a simplified check; a more robust one would use the AnalyticsService.getSubordinates logic
+        if (officer.getRank().ordinal() >= subordinate.getRank().ordinal()) {
+            throw new RuntimeException("You do not have the authority to modify this user's leave.");
+        }
+
+        // Business rule checks
+        if (leaveInfo.getStatus() != LeaveStatus.APPROVED) {
+            throw new RuntimeException("Only currently approved leaves can be modified.");
+        }
+        LocalDate today = LocalDate.now();
+        if (today.isAfter(leaveInfo.getToDate())) {
+            throw new RuntimeException("Cannot modify a leave that has already ended.");
+        }
+        if (dto.getNewToDate().isBefore(leaveInfo.getFromDate()) || dto.getNewToDate().isBefore(today)) {
+            throw new RuntimeException("New end date cannot be in the past or before the leave start date.");
+        }
+
+        leaveInfo.setToDate(dto.getNewToDate());
+        leaveInfo.setRemarks("Leave modified by " + officer.getRank().name() + " " + officer.getName() + ". Reason: " + dto.getRemarks());
+
+        return leaveRepository.save(leaveInfo);
+    }
 }

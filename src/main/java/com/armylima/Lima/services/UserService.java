@@ -4,7 +4,11 @@ import com.armylima.Lima.dto.Bty;
 import com.armylima.Lima.dto.RegisterDTO;
 import com.armylima.Lima.dto.AccountStatus;
 import com.armylima.Lima.dto.Rank;
+import com.armylima.Lima.entities.HealthReport;
+import com.armylima.Lima.entities.LeaveInfo;
 import com.armylima.Lima.entities.UserInfo;
+import com.armylima.Lima.repositories.HealthReportRepository;
+import com.armylima.Lima.repositories.LeaveRequestRepository;
 import com.armylima.Lima.repositories.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -12,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
@@ -27,9 +32,14 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    private final LeaveRequestRepository leaveRepository;
+    private final HealthReportRepository healthRepository;
+
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, LeaveRequestRepository leaveRepository, HealthReportRepository healthRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.leaveRepository = leaveRepository;
+        this.healthRepository = healthRepository;
     }
 
     public boolean registerUser(RegisterDTO dto){
@@ -129,6 +139,24 @@ public class UserService {
 
         user.setBty(newBty);
         return userRepository.save(user);
+    }
+
+    @Transactional // Ensures all database operations succeed or fail together
+    public void deleteOwnAccount(Authentication auth) {
+        String armyId = auth.getName();
+        UserInfo user = userRepository.findByArmyId(armyId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // 1. Delete associated leave records
+        List<LeaveInfo> userLeaves = leaveRepository.findByUser(user);
+        leaveRepository.deleteAll(userLeaves);
+
+        // 2. Delete associated health records
+        List<HealthReport> userHealthReports = healthRepository.findByArmyId(armyId);
+        healthRepository.deleteAll(userHealthReports);
+
+        // 3. Finally, delete the user
+        userRepository.delete(user);
     }
 
 
