@@ -54,7 +54,9 @@ public class SecurityConfig {
                     configuration.setAllowedHeaders(List.of("*"));
                     return configuration;
                 }))
-                .csrf(AbstractHttpConfigurer::disable).cors(CorsConfigurer::disable)
+                //.csrf(AbstractHttpConfigurer::disable).cors(CorsConfigurer::disable)
+                // change to address 403 auth error
+                .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth-> auth
                         .requestMatchers("/auth/**").permitAll()
