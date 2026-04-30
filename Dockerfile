@@ -5,7 +5,7 @@ COPY . .
 RUN gradle build -x test --no-daemon
 
 # Stage 2: Run the application
-FROM openjdk:21
+FROM eclipse-temurin:21-jdk
 WORKDIR /app
 COPY --from=builder /app/build/libs/*.jar app.jar
 EXPOSE 8080
