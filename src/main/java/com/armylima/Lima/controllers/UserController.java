@@ -22,7 +22,8 @@ public class UserController {
     }
 
     // It now accepts the Authentication principal to know who is asking.
-    @PreAuthorize("hasRole('OFFICER')") // This correctly allows only OC and BC
+    //@PreAuthorize("hasRole('OFFICER')") // This correctly allows only OC and BC
+    @PreAuthorize("hasAnyAuthority('ROLE_OFFICER')")
     @GetMapping("/pending-verification")
     public ResponseEntity<List<UserInfo>> getPendingUsers(Authentication auth) {
         return ResponseEntity.ok(userService.getPendingUsers(auth));
